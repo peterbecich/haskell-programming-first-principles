@@ -1,5 +1,11 @@
-
 module Chapter11 where
+
+import Data.Functor
+import Data.Int
+import Data.Char
+import Data.List
+--import System.Random (getStdGen, randomRIO)
+
 
 data Bool' = False' | True'
 
@@ -97,8 +103,8 @@ instance TooMany Llamas where
 data BigSmall = Big Bool | Small Bool deriving (Eq, Show)
 -- cardinality is 4
 
-data NumberOrBool = Numba Int | BoolyBool Bool deriving (Eq, Show)
--- cardinality is (cardinality of Int) + (cardinality of Bool)
+data NumberOrBool = Numba Int8 | BoolyBool Bool deriving (Eq, Show)
+-- cardinality is (cardinality of Int8) + (cardinality of Bool)
 
 -- cardinality is 3
 data QuantumBool = QuantumTrue | QuantumFalse | QuantumBoth deriving (Eq, Show)
@@ -132,4 +138,119 @@ reduceExpr (Mult x y) = reduceExpr x * reduceExpr y
 reduceExpr (Divide x y) = reduceExpr x `div` reduceExpr y
 
 fortyTwo = reduceExpr fortyTwoExpr
+
+-- :k [Int]
+-- [Int] :: *
+-- :k []
+-- [] :: * -> *
+
+-- rolls over
+-- twoToTheEighthMinusOne = 2 * (maxBound :: Int8)
+
+-- twoToTheEighthMinusOne = -1*(minBound :: Int8) + (maxBound :: Int8)
+
+data Example = MakeExample deriving Show
+
+-- :info Example 
+-- data Example = MakeExample
+--  Defined at /Users/peterbecich/haskell/haskell-programming-first-principles/.stack-work/intero/intero70406zph.hs:148:1
+-- instance [safe] Show Example
+
+
+data OperatingSystem = GnuPlusLinux | OpenBSD | Mac | Hurd | Windows deriving (Eq, Show)
+
+data ProgrammingLanguage = Haskell | C | Agda deriving (Eq, Show)
+
+data Programmer = Programmer { os :: OperatingSystem, lang :: ProgrammingLanguage } deriving (Eq, Show)
+
+-- :t Programmer 
+-- Programmer :: OperatingSystem -> ProgrammingLanguage -> Programmer
+
+-- not the right way to partially apply
+-- macProgrammer = Programmer { os = Mac }
+
+data Silly a b c d = MakeSilly a b c d deriving Show
+-- :k Silly 
+-- Silly :: * -> * -> * -> * -> *
+
+data Goofy b c d = Silly Int8 b c d
+
+-- :k Goofy 
+-- Goofy :: * -> * -> * -> *
+
+-- quadruple
+-- :k (,,,)
+-- (,,,) :: * -> * -> * -> * -> *
+
+data BinaryTree a = Leaf | Node (BinaryTree a) a (BinaryTree a) deriving (Eq, Ord, Show)
+
+insert' :: Ord a => a -> BinaryTree a -> BinaryTree a
+insert' b Leaf = Node Leaf b Leaf
+insert' b t@(Node left a right)
+  | b == a = t
+  | b < a = Node (insert' b left) a right
+  | b > a = Node left a (insert' b right)
+
+
+t1 = insert' 67 Leaf
+t2 = insert' 75 t1
+t3 = insert' 80 t2
+t4 = insert' (65) t3
+
+instance Functor BinaryTree where
+  fmap _ Leaf = Leaf
+  fmap f (Node left x right) = Node (f <$> left) (f x) (f <$> right)
+
+letters :: BinaryTree Char
+letters = chr <$> t4
+
+-- :t Node 
+-- Node :: BinaryTree a -> a -> BinaryTree a -> BinaryTree a
+
+preorder :: BinaryTree a -> [a]
+preorder Leaf = []
+preorder (Node left x right) = x : (preorder left) ++ (preorder right)
+
+lettersList = preorder letters
+
+inorder :: BinaryTree a -> [a]
+inorder Leaf = []
+inorder (Node left x right) = (preorder left) ++ x : (preorder right)
+
+postorder :: BinaryTree a -> [a]
+postorder Leaf = []
+postorder (Node left x right) = (preorder left) ++ (preorder right) ++ [x]
+
+
+buildTree :: (Ord a) => [a] -> BinaryTree a
+buildTree list = foldr insert' Leaf list
+
+letterTree = buildTree ['A'..'Z']
+
+
+
+testTree :: BinaryTree Integer
+testTree = Node (Node Leaf 1 Leaf) 2 (Node Leaf 3 Leaf)
+
+testPreorder :: IO ()
+testPreorder =
+  if preorder testTree == [2,1,3]
+  then putStrLn "Preorder fine!"
+  else putStrLn "Preorder broken"
+
+testInorder :: IO ()
+testInorder =
+  if inorder testTree == [1, 2, 3]
+  then putStrLn "Inorder fine"
+  else putStrLn "Inorder broken"
+
+testPostorder :: IO ()
+testPostorder =
+  if postorder testTree == [1, 3, 2]
+  then putStrLn "Postorder fine"
+  else putStrLn "Postorder broken"
+
+testTraversals :: IO ()
+testTraversals = testPreorder >> testInorder >> testPostorder
+
 
