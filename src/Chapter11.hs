@@ -5,7 +5,7 @@ import Data.Int
 import Data.Char
 import Data.List
 --import System.Random (getStdGen, randomRIO)
-
+-- import Test.Hspec
 
 data Bool' = False' | True'
 
@@ -23,7 +23,6 @@ data PugType = PugData
 -- <interactive>:1:1: error:
 --     Not in scope: type constructor or class ‘PugData’
 --     A data constructor of that name is in scope; did you mean DataKinds?
-
 
 data Doggies a = Husky a | Mastiff a | NovaScotiaTollerRetriever a deriving (Eq, Show)
 
