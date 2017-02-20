@@ -50,6 +50,5 @@ instance Monoid a => Monoid (Optional a) where
   mappend Nada o2@(Only _) = o2
   mappend o1@(Only _) Nada = o1
   mappend Nada Nada = Nada
-  
-  
+
 
