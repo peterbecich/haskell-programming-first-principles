@@ -1,4 +1,6 @@
 module Chapter16 where
+import Test.QuickCheck
+import Test.QuickCheck.Function
 
 
 data FixMePls a = FixMe | Pls a deriving (Eq, Show)
@@ -89,3 +91,62 @@ e = let ioi = readIO "1" :: IO Integer
         prepended = fmap ("123"++) cast
         changed = fmap read prepended
     in fmap (*3) changed
+
+
+data Two a b = Two a b deriving (Eq, Show)
+data Or a b = First a | Second b deriving (Eq, Show)
+
+-- "fix" the first type argument.  It will be a functor over b, not a
+instance Functor (Two a) where
+  fmap f (Two x y) = Two x (f y)
+
+instance Functor (Or a) where
+  fmap _ first@(First x) = First x -- first didn't work
+  fmap f (Second y) = Second (f y)
+  
+  
+functorIdentity :: (Functor f, Eq (f a)) => f a -> Bool
+functorIdentity f = fmap id f == f
+
+functorCompose :: (Eq (f c), Functor f) => (a -> b) -> (b -> c) -> f a -> Bool
+functorCompose f g x = (fmap g (fmap f x)) == (fmap (g . f) x)
+
+functorIdentityListInt = (\x -> functorIdentity (x :: [Int]))
+functorComposeListInt = (\x -> functorCompose (+1) (*2) (x :: [Int]))
+--                                              ^^  ^^ generate these
+-- quickCheck functorIdentityListInt 
+-- +++ OK, passed 100 tests.
+-- quickCheck functorComposeListInt
+-- +++ OK, passed 100 tests.
+
+
+-- :t Fun 
+-- Fun :: (a :-> b, b) -> (a -> b) -> Fun a b
+
+functorCompose' :: (Eq (f c), Functor f) => f a -> Fun a b -> Fun b c -> Bool
+functorCompose' x (Fun _ f) (Fun _ g) = (fmap (g . f) x) == ((fmap g . fmap f) x)
+
+type IntToInt = Fun Int Int
+type IntFC = [Int] -> IntToInt -> IntToInt -> Bool
+
+-- quickCheck (functorCompose' :: IntFC)
+
+newtype Identity a = Identity a
+
+instance Functor Identity where
+  fmap f (Identity x) = Identity (f x)
+
+-- TODO
+-- functorIdentityIdentityInt = (\x -> functorIdentity (x :: (Identity Int)))
+-- functorComposeIdentityInt = (\x -> functorCompose (+1) (*2) (x :: (Identity Int)))
+
+data Pair a = Pair a a
+
+instance Functor Pair where
+  fmap f (Pair x1 x2) = Pair (f x1) (f x2)
+
+getInt :: IO Int
+getInt = fmap read getLine
+
+multiplied = fmap show (fmap (*10) getInt) >>= putStrLn
+

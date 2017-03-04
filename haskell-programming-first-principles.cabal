@@ -26,6 +26,7 @@ executable haskell-programming-first-principles-exe
   build-depends:       base
                      , haskell-programming-first-principles
                      , transformers
+                     , QuickCheck
   default-language:    Haskell2010
 
 test-suite haskell-programming-first-principles-test
