@@ -25,6 +25,7 @@ library
                      , Chapter12
                      , Chapter15
                      , Chapter16
+                     , Chapter25
   build-depends:       base >= 4.7 && < 5
                      , QuickCheck
                      , transformers

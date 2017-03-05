@@ -11,6 +11,7 @@ import Chapter11
 import Chapter12
 import Chapter15
 import Chapter16
+import Chapter25
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
