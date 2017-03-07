@@ -4,7 +4,8 @@ language: haskell
 cache:
   directories:
     - $HOME/.stack
-
+    - $HOME/subprojects/urlShortener/.stack
+    
 notifications:
   email:
     on_success: change
@@ -15,8 +16,8 @@ notifications:
 # lines listings versions you don't need/want testing for.
 env:
  - CABALVER=1.20.0.3 GHCVER=7.6.3
- - TEST_DIR=./
- - TEST_DIR=./subprojects/urlShortener/
+ - TEST_DIR=$HOME/
+ - TEST_DIR=$HOME/subprojects/urlShortener/
 
 before_install:
   # Download and unpack the stack executable
