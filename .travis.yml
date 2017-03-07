@@ -15,7 +15,6 @@ notifications:
 # test only against the last release in a major GHC version. Feel free to omit
 # lines listings versions you don't need/want testing for.
 env:
- - CABALVER=1.20.0.3 GHCVER=7.6.3
  - TEST_DIR=$HOME/
  - TEST_DIR=$HOME/subprojects/urlShortener/
 
