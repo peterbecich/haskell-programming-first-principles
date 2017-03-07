@@ -14,7 +14,9 @@ notifications:
 # test only against the last release in a major GHC version. Feel free to omit
 # lines listings versions you don't need/want testing for.
 env:
- - CABALVER=1.18 GHCVER=7.6.3
+ - CABALVER=1.20.0.3 GHCVER=7.6.3
+ - TEST_DIR=./
+ - TEST_DIR=./subprojects/urlShortener/
 
 before_install:
   # Download and unpack the stack executable
@@ -36,5 +38,6 @@ install:
   - travis_wait stack --no-terminal --skip-ghc-check test --only-snapshot
   
 script:
+  - cd $TEST_DIR
   - stack build 
   - stack test
