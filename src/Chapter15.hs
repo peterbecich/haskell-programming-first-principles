@@ -1,5 +1,6 @@
 module Chapter15 where
 
+import Control.Monad.Trans.Writer.Lazy
 import Data.Monoid
 
 -- :info Monoid 
@@ -51,4 +52,28 @@ instance Monoid a => Monoid (Optional a) where
   mappend o1@(Only _) Nada = o1
   mappend Nada Nada = Nada
 
+
+-- instance Monoid [a] where
+--     mappend = (++)
+--     mempty = []
+a = []
+
+-- http://blog.sigfpe.com/2009/01/haskell-monoids-and-their-uses.html
+-- It works just as well, but there is a big advantage to using the Writer version. It has type signature f :: Integer -> Writer (Sum Integer) Integer.
+-- We can immediately read from this that our function has a side effect that involves accumulating a number in a purely additive way. It's never going to,
+-- for example, multiply the accumulated value. The type information tells us a lot about what is going on inside the function without us having to read a
+-- single line of the implementation. The version written with State is free to do whatever it likes with the accumulated value and so it's harder to discern
+-- its purpose.
+
+fact2 :: Integer -> Writer (Sum Integer) Integer
+fact2 0 = return 1
+fact2 n = do
+  let n' = n-1
+  tell $ Sum 1
+  m <- fact2 n'
+  let r = n*m
+  tell $ Sum 1
+  return r
+
+ex2 = runWriter (fact2 10)
 
