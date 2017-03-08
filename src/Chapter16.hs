@@ -13,3 +13,19 @@ e = let ioi = readIO "1" :: IO Integer
     in fmap (*3) changed
 
 
+-- :info Functor 
+-- class Functor (f :: * -> *) where
+--   fmap :: (a -> b) -> f a -> f b
+--   (<$) :: a -> f b -> f a
+
+-- 1
+
+newtype Flip f a b = Flip (f b a) deriving (Eq, Show)
+
+data Quant a b = Finance | Desk a | Floor b
+
+-- instance Functor (Flip Functor b) where
+--   fmap _ Finance = Finance
+--   fmap f (Desk x) = Desk $ f x
+--   fmap _ flo@(Floor y) = flo
+
