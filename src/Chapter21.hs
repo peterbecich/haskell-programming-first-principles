@@ -59,3 +59,19 @@ pipelineFn query = do
       a <- makeIoOnlyObj res
       return $ Right a
 
+
+-- make instance
+-- No instance for (Traversable' (Either Err))
+-- and then use traverse'
+
+pipelineFn' :: Query -> IO (Either Err [(SomeObj, IoOnlyObj)])
+pipelineFn' query = do
+  a <- fetchFn query
+  traverse makeIoOnlyObj (mapM decodeFn a)
+
+pipelineFn'' :: Query -> IO (Either Err [(SomeObj, IoOnlyObj)])
+pipelineFn'' = (traverse makeIoOnlyObj . mapM decodeFn =<<) . fetchFn
+
+pipelineFn''' :: Query -> IO (Either Err [(SomeObj, IoOnlyObj)])
+pipelineFn''' = (traverse makeIoOnlyObj . traverse decodeFn =<<) . fetchFn
+
