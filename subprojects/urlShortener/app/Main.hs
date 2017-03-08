@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import Lib
@@ -10,9 +12,8 @@ import qualified Database.Redis as Redis
 import Network.URI (URI, parseURI)
 import qualified System.Random as SystemRandom
 import Web.Scotty
+import Data.Monoid (mconcat)
 
-main :: IO ()
-main = someFunc
 
 
 alphaNum :: String
@@ -51,8 +52,19 @@ shortyNotFound uri = TextLazy.concat [ uri, " wasn't a URL"]
 shortyFound :: TextLazy.Text -> TextLazy.Text
 shortyFound tbs = TextLazy.concat ["<a href=\"", tbs, "\">", tbs, "</a>"]
 
+-- getAction = do
+--   uri <- param "uri"
+  
+    
 -- app :: Redis.Connection -> ScottyM ()
 -- app redisConnection = do
---   get "/" $ do
---     uri <- param "uri"
-
+--   get "/:word" $ do
+--     beam <- param "word"
+--     html $ mconcat ["<h1>Scotty, ", beam, " me up!</h1>"]
+  
+-- main :: ScottyM ()
+-- https://hackage.haskell.org/package/scotty
+main = scotty 3000 $ do
+  get "/:word" $ do
+    beam <- param "word"
+    html $ mconcat ["<h1>Scotty, ", beam, " me up!</h1>"]
