@@ -30,6 +30,8 @@ library
                      , Chapter19
                      , Chapter20
                      , Chapter21
+                     , Chapter22
+                     , Chapter23
                      , Chapter25
   build-depends:       base >= 4.7 && < 5
                      , QuickCheck

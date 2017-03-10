@@ -1,0 +1,3 @@
+[submodule "fp-course"]
+	path = fp-course
+	url = git@github.com:peterbecich/fp-course.git

@@ -16,6 +16,8 @@ import Chapter18
 import Chapter19
 import Chapter20
 import Chapter21
+import Chapter22
+import Chapter23
 import Chapter25
 
 someFunc :: IO ()
