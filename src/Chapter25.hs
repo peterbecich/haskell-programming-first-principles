@@ -1,30 +1,10 @@
 module Chapter25 where
 
+import Course.Compose
+
 newtype Identity a = Identity { runIdentity :: a }
 
-newtype Compose f g a = Compose { getCompose :: f (g a) } deriving (Eq, Show)
-
 x = Compose [Just (1 :: Int), Nothing]
-
-instance Functor Identity where
-  fmap f (Identity x) = Identity $ f x
-
-instance Applicative Identity where
-  pure = Identity
-  (Identity f) <*> (Identity a) = Identity $ f a
-
-
-
-instance (Functor f, Functor g) => Functor (Compose f g) where
-  fmap f (Compose fga) = Compose $ (fmap . fmap) f fga
-
-instance (Applicative f, Applicative g) => Applicative (Compose f g) where
-  -- pure :: a -> Compose f g a
-  pure x = Compose ( pure (pure x) )
-  --(<*>) :: Compose f g (a -> b) -> Compose f g a -> Compose f g b
-  -- TODO verify this
-  (<*>) (Compose fgab) (Compose fga) =
-    Compose $ fmap (\gab -> \ga -> gab <*> ga) fgab <*> fga
 
 -- needs Traversable
 -- instance (Monad f, Monad g) => Monad (Compose f g) where
