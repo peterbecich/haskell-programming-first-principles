@@ -93,27 +93,20 @@ e = let ioi = readIO "1" :: IO Integer
     in fmap (*3) changed
 
 
-<<<<<<< variant A
 -- :info Functor 
 -- class Functor (f :: * -> *) where
 --   fmap :: (a -> b) -> f a -> f b
 --   (<$) :: a -> f b -> f a
->>>>>>> variant B
+
 data Two a b = Two a b deriving (Eq, Show)
 data Or a b = First a | Second b deriving (Eq, Show)
-======= end
 
-<<<<<<< variant A
 -- 1
->>>>>>> variant B
 -- "fix" the first type argument.  It will be a functor over b, not a
 instance Functor (Two a) where
   fmap f (Two x y) = Two x (f y)
-======= end
 
-<<<<<<< variant A
 newtype Flip f a b = Flip (f b a) deriving (Eq, Show)
->>>>>>> variant B
 instance Functor (Or a) where
   fmap _ first@(First x) = First x -- first didn't work
   fmap f (Second y) = Second (f y)
@@ -121,21 +114,17 @@ instance Functor (Or a) where
   
 functorIdentity :: (Functor f, Eq (f a)) => f a -> Bool
 functorIdentity f = fmap id f == f
-======= end
 
-<<<<<<< variant A
 data Quant a b = Finance | Desk a | Floor b
->>>>>>> variant B
+
 functorCompose :: (Eq (f c), Functor f) => (a -> b) -> (b -> c) -> f a -> Bool
 functorCompose f g x = (fmap g (fmap f x)) == (fmap (g . f) x)
-======= end
 
-<<<<<<< variant A
 -- instance Functor (Flip Functor b) where
 --   fmap _ Finance = Finance
 --   fmap f (Desk x) = Desk $ f x
 --   fmap _ flo@(Floor y) = flo
->>>>>>> variant B
+
 functorIdentityListInt = (\x -> functorIdentity (x :: [Int]))
 functorComposeListInt = (\x -> functorCompose (+1) (*2) (x :: [Int]))
 --                                              ^^  ^^ generate these
@@ -174,5 +163,5 @@ getInt :: IO Int
 getInt = fmap read getLine
 
 multiplied = fmap show (fmap (*10) getInt) >>= putStrLn
-======= end
+
 
