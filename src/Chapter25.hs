@@ -42,6 +42,17 @@ instance Bifunctor Either' where
 
 -- 25.8
 
+instance Functor Identity where
+  fmap f (Identity x) = Identity $ f x
+
+instance Applicative Identity where
+  pure x = Identity x
+  (<*>) (Identity f) (Identity x) = Identity $ f x
+
+instance Monad Identity where
+  return = pure
+  (>>=) (Identity x) f = f x
+
 newtype IdentityT f a = IdentityT { runIdentityT :: f a } deriving (Eq, Show)
 
 instance (Functor m) => Functor (IdentityT m) where
@@ -50,10 +61,6 @@ instance (Functor m) => Functor (IdentityT m) where
 instance (Applicative m) => Applicative (IdentityT m) where
   pure x = IdentityT (pure x)
   (<*>) (IdentityT fab) (IdentityT fa) = IdentityT (fab <*> fa)
-
-instance Monad Identity where
-  return = pure
-  (>>=) (Identity x) f = f x
 
 instance (Monad m) => Monad (IdentityT m) where
   return = pure
