@@ -6,11 +6,20 @@ newtype Identity a = Identity { runIdentity :: a }
 
 x = Compose [Just (1 :: Int), Nothing]
 
+-- :t x
+-- x :: Compose [] Maybe Int
+
 -- needs Traversable
 -- instance (Monad f, Monad g) => Monad (Compose f g) where
 --   return = pure
 --   (>>=) :: Compose f g a -> (a -> Compose f g b) -> Compose f g b
 --   (>>=) = ???
+
+instance (Foldable f, Foldable g) => Foldable (Compose f g) where
+  foldMap f (Compose fgx) = undefined
+
+instance (Traversable f, Traversable g) => Traversable (Compose f g) where
+  traverse func (Compose fgx) = undefined
 
 
 class Bifunctor p where
@@ -65,3 +74,7 @@ instance (Applicative m) => Applicative (IdentityT m) where
 instance (Monad m) => Monad (IdentityT m) where
   return = pure
   (>>=) (IdentityT mx) f = IdentityT $ mx >>= runIdentityT . f
+
+
+-- :k Compose 
+-- Compose :: (* -> *) -> (* -> *) -> * -> *  
