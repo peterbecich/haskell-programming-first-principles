@@ -2,6 +2,10 @@ flags: {}
 extra-package-dbs: []
 packages:
 - '.'
+- location:
+    git: git@github.com:peterbecich/fp-course.git
+    commit: b9b3ce29ace3e75be426eb2a12b899d3836b6538
+  extra-dep: true
 extra-deps: [template-haskell-2.11.1.0, text-1.2.2.1, uuid-1.3.13]
 # resolver: lts-8.4
 #resolver: lts-7.19

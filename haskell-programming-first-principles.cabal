@@ -38,6 +38,7 @@ library
                      , transformers
                      , text
                      , uuid
+                     , course
   default-language:    Haskell2010
 
 executable haskell-programming-first-principles-exe
