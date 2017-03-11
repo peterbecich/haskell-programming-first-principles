@@ -81,3 +81,10 @@ eitherT :: Monad m => (a -> m c) -> (b -> m c) -> EitherT a m b -> m c
 eitherT f1 f2 eitherTAMB = let
   mEitherAB = runEitherT eitherTAMB
   in (foldEither f1 f2) =<< mEitherAB
+
+
+newtype ReaderT r m a = ReaderT { runReaderT :: r -> m a }
+
+-- instance Functor m => Functor (ReaderT r m a) where
+  
+

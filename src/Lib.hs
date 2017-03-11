@@ -19,6 +19,7 @@ import Chapter21
 import Chapter22
 import Chapter23
 import Chapter25
+import Chapter26
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
