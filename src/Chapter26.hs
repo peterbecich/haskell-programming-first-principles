@@ -6,6 +6,7 @@ import Data.Functor
 import Control.Applicative
 
 import Data.Either
+import Data.Bifunctor
 
 -- newtype Compose' f g a = 
 
@@ -62,3 +63,21 @@ instance Monad m => Monad (EitherT e m) where
     efunc (Right a) = func a
     efunc (Left e) = EitherT ( pure (Left e) )
     in EitherT $ mEitherA >>= (runEitherT . efunc)
+
+swapEitherT :: (Functor m) => EitherT e m a -> EitherT a m e
+swapEitherT et = let
+  mEitherEA = runEitherT et
+  in EitherT $ (fmap) swapEither mEitherEA
+
+swapEither :: Either e a -> Either a e
+swapEither (Right x) = Left x
+swapEither (Left x) = Right x
+
+foldEither :: (a -> c) -> (b -> c) -> Either a b -> c
+foldEither f1 _ (Left x) = f1 x
+foldEither _ f2 (Right y) = f2 y
+
+eitherT :: Monad m => (a -> m c) -> (b -> m c) -> EitherT a m b -> m c
+eitherT f1 f2 eitherTAMB = let
+  mEitherAB = runEitherT eitherTAMB
+  in (foldEither f1 f2) =<< mEitherAB
