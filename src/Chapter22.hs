@@ -4,6 +4,7 @@ module Chapter22 where
 
 import Control.Applicative
 import Data.Char
+import Data.Maybe
 
 hurr :: Num a => a -> a
 hurr = (*2)
@@ -179,3 +180,27 @@ getDogR' :: Reader Person Dog
 getDogR' = liftA2 Dog (Reader dogName) (Reader address)
 
 junior' = runReader getDogR' pat
+
+instance Monad (Reader r) where
+  return = pure
+  (>>=) readerA func = Reader $ (\r0 -> runReader (func (runReader readerA r0)) r0 )
+
+getDogRM :: Person -> Dog
+getDogRM = do
+  name <- dogName
+  addr <- address
+  return $ Dog name addr
+
+getDogRM' :: Reader Person Dog
+getDogRM' = do
+  name <- Reader dogName
+  addr <- Reader address
+  return $ Dog name addr
+
+junior'' = runReader getDogRM' pat
+
+x = [1, 2, 3]
+y = [4, 5, 6]
+z = [7, 8, 9]
+
+
