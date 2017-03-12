@@ -85,6 +85,33 @@ eitherT f1 f2 eitherTAMB = let
 
 newtype ReaderT r m a = ReaderT { runReaderT :: r -> m a }
 
--- instance Functor m => Functor (ReaderT r m a) where
-  
+instance Functor m => Functor (ReaderT r m) where
+  fmap f rt = ReaderT (\r0 -> let
+                          mx0 = runReaderT rt r0
+                          in fmap f mx0
+                      )
+
+instance Applicative m => Applicative (ReaderT r m) where
+  pure x = ReaderT (\_ -> pure x)
+  (<*>) rtab rta = ReaderT (\r0 -> let
+                               mab = runReaderT rtab r0 -- :: m (a -> b)
+                               mx = runReaderT rta r0 -- :: m a
+                               in mab <*> mx
+                           )
+
+instance Monad m => Monad (ReaderT r m) where
+  return = pure
+  --                        (a -> ReaderT { runReaderT :: r -> m b })
+  -- (>>=) :: ReaderT r m a -> (a -> ReaderT r m b) -> ReaderT r m b
+  (>>=) rta aRTB = let
+    rma = runReaderT rta -- :: r -> m a
+    armb = runReaderT . aRTB -- :: a -> r -> m b
+    ramb = flip armb -- :: r -> a -> m b
+    -- r -> m b
+    rmb r = let
+      ma = rma r -- :: m a
+      amb = ramb r -- :: a -> m b
+      in ma >>= amb
+    in ReaderT rmb
+                               
 

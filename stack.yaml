@@ -4,7 +4,7 @@ packages:
 - '.'
 - location:
     git: https://github.com/peterbecich/fp-course.git
-    commit: b9b3ce29ace3e75be426eb2a12b899d3836b6538
+    commit: 860e416681f92f5a477d027e3b511f9e355f2370
   extra-dep: true
 
 #    git: git@github.com:peterbecich/fp-course.git  
