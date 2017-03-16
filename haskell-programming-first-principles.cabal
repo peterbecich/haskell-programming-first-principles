@@ -39,6 +39,8 @@ library
                      , transformers
                      , text
                      , uuid
+                     , random
+                     , mtl
                      , course
   default-language:    Haskell2010
 
