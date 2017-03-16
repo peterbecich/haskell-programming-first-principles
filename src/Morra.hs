@@ -5,32 +5,16 @@ import System.Random
 import Data.Bifunctor
 import Data.Tuple
 
-
 --           computer, player
 type Score = (Int, Int)
-
-main' :: IO ()
-main' = (randomRIO (-1, 1) :: IO Int) >>= (\i -> putStrLn ("hello"++(show i)))
 
 -- computer wins evens
 -- player wins odds
 
+main' :: IO ()
+main' = (randomRIO (-1, 1) :: IO Int) >>= (\i -> putStrLn ("hello"++(show i)))
+
 type Morra = StateT Score IO
-
--- move :: Morra String
--- move = StateT $ \score -> let
---                    r = (randomRIO (-1, 1) :: IO Int)                   
---                    str = fmap show r
---                    in fmap (\s -> (s, score)) str
-
--- move :: Morra String
--- move = do
---   (computerScore, playerScore) <- get
---   --return (computerScore, playerScore)
---   r <- fmap show (randomRIO (-1, 1) :: IO Int) 
---   return r
-  -- computerMove <- return $ (randomRIO (4,8) :: IO Int)
-  -- fmap (\cm -> (computerScore+cm, playerScore)) computerMove
 
 readHand :: IO Int
 readHand = do
