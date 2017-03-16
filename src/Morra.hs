@@ -1,5 +1,6 @@
 import Control.Monad.Trans.State.Lazy
 import Control.Monad
+import Control.Monad.IO.Class
 import System.IO
 import System.Random
 import Data.Bifunctor
@@ -29,7 +30,7 @@ readHand = do
       fingers = match raw
   return fingers
 
-
+-- Excercise to reader: change roundWinner to be `Int -> Morra String`
 roundWinner :: Score -> Int -> (String, Score)
 roundWinner priorScore fingers
   | mod fingers 2 == 0 = ("Computer Wins Round; finger sum "++(show fingers), first (+1) priorScore)
@@ -43,17 +44,41 @@ winner (comp, player)
   | comp > player = "Computer Wins"
   | otherwise = "Player Wins"
 
+-- This is a Morra computation (type Morra String = StateT Score IO String).
+-- Within this computation, we're able to perform IO actions as well as manipulating a state
+-- of type Score. The result of the computation has type `String`.
 morraRound :: Morra String
-morraRound = do
+morraRound = do -- StateT Score IO String
+  -- Get the current/previous score
   score <- get
-  let computerFingerCount = randomRIO (0, 5) :: IO Int
-      playerFingerCount = readHand :: IO Int
-      fingerCount = liftM2 (+) computerFingerCount playerFingerCount :: IO Int
-      out = liftM2 roundWinner (pure score) fingerCount :: IO (String, Score)
-  StateT (\_ -> out)
+  
+  -- Random fingers
+  computerFingerCount <- liftIO $ randomRIO (0, 5)
+  playerFingerCount <- liftIO readHand
+  
+  -- Determine the winner
+  let (message, newscore) = roundWinner score (computerFingerCount + playerFingerCount)
+ 
+  -- Store the new score
+  put newscore
+  
+  -- Describe what happen during the round, this message is the result of the computation.
+  -- The `a` value of (StateT Score IO a).
+  return message
 
-tenMorraRounds :: Morra Score
-tenMorraRounds = replicateM 10 morraRound >> get
+tenMorraRounds :: Morra [String]
+tenMorraRounds = replicateM 10 morraRound
 
-game :: IO String
-game = evalStateT (liftM winner tenMorraRounds) (0, 0)
+-- Run the game by executing all these rounds; printing the messages and also our final winner.
+-- The point is that
+-- (1) morraRound is a single round that has IO effects as well as being stateful with messages as a result.
+-- (2) tenMorraRounds is ten of those rounds, collecting the results (the state and effects are carried out properly)
+-- (3) Eventually we run that tenMorraRounds computation and we obtain the messages results, as well as the final state (so the Score).
+-- coderpad.io is limited. Almost no libraries at all :(
+-- I will copy it into Emacs and run it.  Thank you both very much!!
+-- Repaste here if anything.  Will do
+game :: IO ()
+game = do
+  (collectedMessages, finalScore) <- runStateT tenMorraRounds (0, 0)
+  mapM_ putStrLn collectedMessages
+  putStrLn (winner finalScore)
