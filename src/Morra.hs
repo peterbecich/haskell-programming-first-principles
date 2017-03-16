@@ -59,17 +59,17 @@ winner (comp, player)
   | comp > player = "Computer Wins"
   | otherwise = "Player Wins"
 
-move :: Morra String
-move = do
+morraRound :: Morra String
+morraRound = do
   score <- get
   let computerFingerCount = randomRIO (0, 5) :: IO Int
       playerFingerCount = readHand :: IO Int
-      fingerCount = liftM2 (+) computerFingerCount playerFingerCount
-      out = liftM2 roundWinner (pure score) fingerCount
+      fingerCount = liftM2 (+) computerFingerCount playerFingerCount :: IO Int
+      out = liftM2 roundWinner (pure score) fingerCount :: IO (String, Score)
   StateT (\_ -> out)
 
-tenMoves :: Morra Score
-tenMoves = replicateM 10 move >> get
+tenMorraRounds :: Morra Score
+tenMorraRounds = replicateM 10 morraRound >> get
 
 game :: IO String
-game = evalStateT (liftM winner tenMoves) (0, 0)
+game = evalStateT (liftM winner tenMorraRounds) (0, 0)
