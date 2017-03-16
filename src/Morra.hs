@@ -68,5 +68,8 @@ move = do
       out = liftM2 roundWinner (pure score) fingerCount
   StateT (\_ -> out)
 
-tenMoves = replicateM 10 move
+tenMoves :: Morra Score
+tenMoves = replicateM 10 move >> get
 
+game :: IO String
+game = evalStateT (liftM winner tenMoves) (0, 0)
