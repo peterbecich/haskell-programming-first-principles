@@ -19,22 +19,33 @@ type Morra = StateT Score IO
 
 readHand :: IO Int
 readHand = do
-  raw <- getChar
+  raw <- getLine
   let match x
-        | x == '1' = 1
-        | x == '2' = 2
-        | x == '3' = 3
-        | x == '4' = 4
-        | x == '5' = 5
+        | x == "1" = 1
+        | x == "2" = 2
+        | x == "3" = 3
+        | x == "4" = 4
+        | x == "5" = 5
         | otherwise = 0
       fingers = match raw
   return fingers
 
 -- Excercise to reader: change roundWinner to be `Int -> Morra String`
-roundWinner :: Score -> Int -> (String, Score)
-roundWinner priorScore fingers
-  | mod fingers 2 == 0 = ("Computer Wins Round; finger sum "++(show fingers), first (+1) priorScore)
-  | otherwise = ("Player Wins Round; finger sum "++(show fingers), second (+1) priorScore)
+-- roundWinner :: Score -> Int -> (String, Score)
+-- roundWinner priorScore fingers
+--   | mod fingers 2 == 0 = ("Computer Wins Round; finger sum "++(show fingers), first (+1) priorScore)
+--   | otherwise = ("Player Wins Round; finger sum "++(show fingers), second (+1) priorScore)
+
+roundWinner :: Int -> Morra String
+roundWinner fingers
+  | mod fingers 2 == 0 = do
+      priorScore <- get
+      _ <- put $ first (+1) priorScore
+      return ("Computer Wins Round; finger sum "++(show fingers))
+  | otherwise = do
+      priorScore <- get
+      _ <- put $ second (+1) priorScore
+      return ("Player Wins Round; finger sum "++(show fingers))
 
 -- roundWinner ps f =  swap . (roundWinner' ps f)
   
@@ -56,11 +67,11 @@ morraRound = do -- StateT Score IO String
   computerFingerCount <- liftIO $ randomRIO (0, 5)
   playerFingerCount <- liftIO readHand
   
-  -- Determine the winner
-  let (message, newscore) = roundWinner score (computerFingerCount + playerFingerCount)
+  -- Determine the round winner
+  message <- roundWinner (computerFingerCount + playerFingerCount)
  
   -- Store the new score
-  put newscore
+  -- put newscore
   
   -- Describe what happen during the round, this message is the result of the computation.
   -- The `a` value of (StateT Score IO a).
@@ -77,8 +88,10 @@ tenMorraRounds = replicateM 10 morraRound
 -- coderpad.io is limited. Almost no libraries at all :(
 -- I will copy it into Emacs and run it.  Thank you both very much!!
 -- Repaste here if anything.  Will do
+
+-- https://coderpad.io/MAF264KT
 game :: IO ()
 game = do
   (collectedMessages, finalScore) <- runStateT tenMorraRounds (0, 0)
-  mapM_ putStrLn collectedMessages
-  putStrLn (winner finalScore)
+  _ <- mapM_ putStrLn collectedMessages
+  putStrLn (winner finalScore ++ "  " ++ show finalScore)
