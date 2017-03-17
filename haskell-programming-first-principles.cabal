@@ -41,6 +41,7 @@ library
                      , uuid
                      , random
                      , mtl
+                     , containers
                      , course
   default-language:    Haskell2010
 
