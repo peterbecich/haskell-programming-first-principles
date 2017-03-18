@@ -21,6 +21,7 @@ import Chapter23
 import Chapter25
 import Chapter26
 import Morra
+import LensExamples
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"

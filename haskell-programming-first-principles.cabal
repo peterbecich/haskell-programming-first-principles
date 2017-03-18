@@ -34,6 +34,8 @@ library
                      , Chapter23
                      , Chapter25
                      , Chapter26
+                     , Morra
+                     , LensExamples
   build-depends:       base >= 4.7 && < 5
                      , QuickCheck
                      , transformers
