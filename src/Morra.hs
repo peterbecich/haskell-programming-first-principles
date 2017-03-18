@@ -1,9 +1,14 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE Rank2Types #-}
+
 module Morra where
 
 import Control.Monad.Trans.State.Lazy
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Lens
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.State
 import System.IO
 import System.Random
 import Data.Bifunctor
@@ -11,14 +16,33 @@ import Data.Tuple
 import qualified Data.Map.Lazy as Map
 
 --           computer, player
-type Score = (Int, Int)
+data Score = Score
+  { _computer :: Int,
+    _player :: Int
+  }
 
-type MoveKeys = (Int, Int)
-type MoveValue = Int
-type PlayerMoves = Map.Map MoveKeys MoveValue
-type PriorTwoMoves = (Maybe Int, Maybe Int)
+type Fingers = Int
+type PlayerMoveKeys = (Int, Int)
+type PlayerMoves = Map.Map PlayerMoveKeys Fingers
+data PriorTwoMoves = PriorTwoMoves
+  { _secondLastMove :: Maybe Fingers,
+    _lastMove :: Maybe Fingers
+  }
 
-emptyGame = ((0,0), Map.empty, (Nothing, Nothing))
+data GameState = GameState
+  { _score :: Score,
+    _playerMoves :: PlayerMoves,
+    _priorTwoMoves :: PriorTwoMoves
+  }
+
+makeLenses ''Score
+makeLenses ''PriorTwoMoves
+makeLenses ''GameState
+
+emptyScore = Score 0 0
+emptyPlayerMoves = Map.empty
+emptyPriorTwoMoves = PriorTwoMoves Nothing Nothing
+emptyGame = GameState emptyScore emptyPlayerMoves emptyPriorTwoMoves
 
 printMap :: PlayerMoves -> IO ()
 printMap playerMoves = let
@@ -29,11 +53,11 @@ printMap playerMoves = let
 -- player wins odds
 
 main' :: IO ()
-main' = (randomRIO (-1, 1) :: IO Int) >>= (\i -> putStrLn ("hello"++(show i)))
+main' = (randomRIO (-1, 1) :: IO Fingers) >>= (\i -> putStrLn ("hello"++(show i)))
 
-type Morra = StateT (Score, PlayerMoves, PriorTwoMoves) IO
+type Morra = StateT GameState IO
 
-readHand :: IO Int
+readHand :: IO Fingers
 readHand = do
   raw <- getLine
   let match x
@@ -46,59 +70,93 @@ readHand = do
       fingers = match raw
   return fingers
 
--- Excercise to reader: change roundWinner to be `Int -> Morra String`
--- roundWinner :: Score -> Int -> (String, Score)
+-- Excercise to reader: change roundWinner to be `Fingers -> Morra String`
+-- roundWinner :: Score -> Fingers -> (String, Score)
 -- roundWinner priorScore fingers
 --   | mod fingers 2 == 0 = ("Computer Wins Round; finger sum "++(show fingers), first (+1) priorScore)
 --   | otherwise = ("Player Wins Round; finger sum "++(show fingers), second (+1) priorScore)
 
-roundWinner :: Int -> Morra String
+roundWinner :: Fingers -> Morra String
 roundWinner fingers
   | mod fingers 2 == 0 = do
-      (priorScore, playerMoves, priorTwoMoves) <- get
-      _ <- put $ (first (+1) priorScore, playerMoves, priorTwoMoves)
+      -- (priorScore, playerMoves, priorTwoMoves) <- get
+      -- gameState <- get
+      --     arrow? V
+      --_ <- put $ (first (+1) priorScore, playerMoves, priorTwoMoves)
+      _ <- score.computer += 1
       return ("Computer Wins Round; finger sum "++(show fingers))
   | otherwise = do
-      (priorScore, playerMoves, priorTwoMoves) <- get
-      _ <- put $ (second (+1) priorScore, playerMoves, priorTwoMoves)
+      _ <- score.player += 1
       return ("Player Wins Round; finger sum "++(show fingers))
 
 -- roundWinner ps f =  swap . (roundWinner' ps f)
   
 winner :: Score -> String
-winner (comp, player)
+winner (Score comp player)
   | comp == player = "Tie"
   | comp > player = "Computer Wins"
   | otherwise = "Player Wins"
 
 -- prediction of player move, based on last two moves, if they exist
-prediction :: Morra (Maybe Int)
+prediction :: Morra (Maybe Fingers)
 prediction = do
-  (_, playerMoves, priorTwoMoves) <- get  
-  case priorTwoMoves of
-    ((Just secondLastMove), (Just lastMove)) -> pure (Map.lookup (secondLastMove, lastMove) playerMoves)
-    (_, _) -> pure Nothing
+  -- (_, playerMoves, priorTwoMoves) <- get
+  gameState <- get
+  case gameState of
+    (GameState _ playerMoves priorTwoMoves) ->
+      case priorTwoMoves of
+        (PriorTwoMoves (Just secondLastMove) (Just lastMove)) -> pure (Map.lookup (secondLastMove, lastMove) playerMoves)
+        (PriorTwoMoves _ _) -> pure Nothing
 
 -- computer makes decision on number of fingers
-computerMove :: Morra Int
+computerMove :: Morra Fingers
 computerMove = do
-  (_, playerMoves, priorTwoMoves) <- get
+  gameState <- get
   maybePrediction <- prediction
-  case maybePrediction of
-    Nothing -> liftIO (randomRIO (0, 5))
-    (Just predictedPlayerMove) -> pure $ if (mod predictedPlayerMove 2 == 0) then 0 else 1
+  case gameState of
+    (GameState _ playerMoves priorTwoMoves) ->
+      case maybePrediction of
+        Nothing -> liftIO (randomRIO (0, 5))
+        (Just predictedPlayerMove) -> pure $ if (mod predictedPlayerMove 2 == 0) then 0 else 1
 
-storePlayerMoves :: Int -> Morra ()
-storePlayerMoves currentPlayerMove = do
-  (priorScore, playerMoves, priorTwoMoves) <- get
-  let playerMoves' = case priorTwoMoves of
-        ((Just secondLastMove), (Just lastMove)) -> Map.insert (secondLastMove, lastMove) currentPlayerMove playerMoves
-        (_, _) -> playerMoves
-  let priorTwoMoves' = case priorTwoMoves of
-        ((_), maybeLastMove) -> (maybeLastMove, Just currentPlayerMove)
-        (_, _) -> priorTwoMoves
-  _ <- put (priorScore, playerMoves', priorTwoMoves')
-  return ()
+
+
+--  :t priorTwoMoves.lastMove 
+-- priorTwoMoves.lastMove
+--   :: Functor f =>
+--      (Maybe Fingers -> f (Maybe Fingers)) -> GameState -> f GameState
+
+-- :t (-=)
+-- (-=)
+--   :: (Control.Monad.State.Class.MonadState s m, Num a) =>
+--      ASetter' s a -> a -> m ()
+
+-- storePlayerMoves :: Fingers -> Morra ()
+-- storePlayerMoves currentPlayerMove = do
+--   gameState <- get
+--   let
+--     lm = gameState^.priorTwoMoves.lastMove
+--   -- _ <- priorTwoMoves.secondLastMove (\_ -> pure lm)
+--   _ <- priorTwoMoves.lastMove .~ lm
+--   return ()
+
+  -- set priorTwoMoves.lastMove (Just currentPlayerMove) gameState
+  
+
+-- storePlayerMoves :: Fingers -> Morra ()
+-- storePlayerMoves currentPlayerMove = do
+--   gameState <- get
+--   case gameState of
+--     (GameState _ playerMoves priorTwoMoves) ->
+--       let playerMoves' = case priorTwoMoves of
+--             (PriorTwoMoves (Just secondLastMove) (Just lastMove)) ->
+--               Map.insert (secondLastMove, lastMove) currentPlayerMove playerMoves
+--             (PriorTwoMoves _ _) -> playerMoves
+--           priorTwoMoves' = case priorTwoMoves of
+--             (PriorTwoMoves _ maybeLastMove) -> (maybeLastMove, Just currentPlayerMove)
+--             (PriorTwoMoves _ _) -> priorTwoMoves
+  -- put (GameState priorScore playerMoves' priorTwoMoves')
+  -- return ()
     
 
 -- :t liftIO
@@ -107,46 +165,46 @@ storePlayerMoves currentPlayerMove = do
 -- This is a Morra computation (type Morra String = StateT Score IO String).
 -- Within this computation, we're able to perform IO actions as well as manipulating a state
 -- of type Score. The result of the computation has type `String`.
-morraRound :: Morra String
-morraRound = do -- StateT Score IO String
-  -- Get the current/previous score
-  (_, playerMoves, (secondLastMove, lastMove)) <- get
+-- morraRound :: Morra String
+-- morraRound = do -- StateT Score IO String
+--   -- Get the current/previous score
+--   (_, playerMoves, (secondLastMove, lastMove)) <- get
 
-  computerFingerCount <- computerMove
-  -- Random fingers
-  --computerFingerCount <- liftIO $ randomRIO (0, 5)
-  playerFingerCount <- liftIO readHand
+--   computerFingerCount <- computerMove
+--   -- Random fingers
+--   --computerFingerCount <- liftIO $ randomRIO (0, 5)
+--   playerFingerCount <- liftIO readHand
 
-  _ <- storePlayerMoves playerFingerCount
+--   _ <- storePlayerMoves playerFingerCount
   
-  -- Determine the round winner
-  message <- roundWinner (computerFingerCount + playerFingerCount)
+--   -- Determine the round winner
+--   message <- roundWinner (computerFingerCount + playerFingerCount)
  
-  -- Store the new score
-  -- put newscore
+--   -- Store the new score
+--   -- put newscore
   
-  -- Describe what happen during the round, this message is the result of the computation.
-  -- The `a` value of (StateT Score IO a).
-  return message
+--   -- Describe what happen during the round, this message is the result of the computation.
+--   -- The `a` value of (StateT Score IO a).
+--   return message
 
-tenMorraRounds :: Morra [String]
-tenMorraRounds = replicateM 10 morraRound
+-- tenMorraRounds :: Morra [String]
+-- tenMorraRounds = replicateM 10 morraRound
 
--- Run the game by executing all these rounds; printing the messages and also our final winner.
--- The point is that
--- (1) morraRound is a single round that has IO effects as well as being stateful with messages as a result.
--- (2) tenMorraRounds is ten of those rounds, collecting the results (the state and effects are carried out properly)
--- (3) Eventually we run that tenMorraRounds computation and we obtain the messages results, as well as the final state (so the Score).
--- coderpad.io is limited. Almost no libraries at all :(
--- I will copy it into Emacs and run it.  Thank you both very much!!
--- Repaste here if anything.  Will do
+-- -- Run the game by executing all these rounds; printing the messages and also our final winner.
+-- -- The point is that
+-- -- (1) morraRound is a single round that has IO effects as well as being stateful with messages as a result.
+-- -- (2) tenMorraRounds is ten of those rounds, collecting the results (the state and effects are carried out properly)
+-- -- (3) Eventually we run that tenMorraRounds computation and we obtain the messages results, as well as the final state (so the Score).
+-- -- coderpad.io is limited. Almost no libraries at all :(
+-- -- I will copy it into Emacs and run it.  Thank you both very much!!
+-- -- Repaste here if anything.  Will do
 
--- https://coderpad.io/MAF264KT
-game :: IO ()
-game = do
-  (collectedMessages, (finalScore, playerMoves, priorTwoMoves)) <- runStateT tenMorraRounds emptyGame
-  _ <- mapM_ putStrLn collectedMessages
-  _ <- putStrLn (winner finalScore ++ "  " ++ show finalScore)
-  -- putStrLn $ show playerMoves
-  _ <- putStrLn ("map size " ++ (show (Map.size playerMoves)))
-  printMap playerMoves
+-- -- https://coderpad.io/MAF264KT
+-- game :: IO ()
+-- game = do
+--   (collectedMessages, (finalScore, playerMoves, priorTwoMoves)) <- runStateT tenMorraRounds emptyGame
+--   _ <- mapM_ putStrLn collectedMessages
+--   _ <- putStrLn (winner finalScore ++ "  " ++ show finalScore)
+--   -- putStrLn $ show playerMoves
+--   _ <- putStrLn ("map size " ++ (show (Map.size playerMoves)))
+--   printMap playerMoves
