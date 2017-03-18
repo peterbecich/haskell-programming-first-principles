@@ -20,6 +20,7 @@ import Chapter22
 import Chapter23
 import Chapter25
 import Chapter26
+import Morra
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"

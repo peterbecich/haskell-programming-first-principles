@@ -1,6 +1,9 @@
+module Morra where
+
 import Control.Monad.Trans.State.Lazy
 import Control.Monad
 import Control.Monad.IO.Class
+import Control.Lens
 import System.IO
 import System.Random
 import Data.Bifunctor

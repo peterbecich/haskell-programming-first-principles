@@ -42,6 +42,7 @@ library
                      , random
                      , mtl
                      , containers
+                     , lens
                      , course
   default-language:    Haskell2010
 
