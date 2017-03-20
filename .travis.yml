@@ -17,6 +17,7 @@ notifications:
 env:
  - TEST_DIR=./
  - TEST_DIR=./subprojects/urlShortener/
+ - TEST_DIR=./subprojects/additionHspec/
 
 before_install:
   # Download and unpack the stack executable
