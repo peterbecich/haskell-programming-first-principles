@@ -22,6 +22,7 @@ import Chapter25
 import Chapter26
 import Morra
 import LensExamples
+import NaiveLensExamples
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
