@@ -40,11 +40,12 @@ getURI :: Redis.Connection
 getURI conn shortURI = Redis.runRedis conn $ Redis.get shortURI
 
 linkShorty :: String -> String
-linkShorty shorty = concat [ "<a href=\"", shorty, "\">Copy and paste short URL</a>" ]
+linkShorty shorty = concat [ "<a href=\"", shorty, "\">", shorty, "</a>" ]
 
 shortyCreated :: Show a => a -> String -> TextLazy.Text
-shortyCreated response shorty =
-  TextLazy.concat [ TextLazy.pack (show response), " shorty is: ", TextLazy.pack (linkShorty shorty) ]
+shortyCreated response shorty = let
+  prefix = "http://localhost:3000/lengthen/"
+  in TextLazy.concat [ TextLazy.pack (show response), " shorty is: ", TextLazy.pack (linkShorty (prefix++shorty)) ]
 
 shortyNotURL :: TextLazy.Text -> TextLazy.Text
 shortyNotURL uri = TextLazy.concat [ uri, " wasn't a URL"]
@@ -55,10 +56,13 @@ shortyFound tbs = TextLazy.concat ["<a href=\"", tbs, "\">", tbs, "</a>"]
 -- getAction = do
 --   uri <- param "uri"
   
-    
+-- get :: RoutePattern -> ActionM () -> ScottyM ()
+
 app :: Redis.Connection -> ScottyM ()
 app redisConnection = do
-  get "/:word" $ do
+  get "/" $ do
+    html $ mconcat ["<h1>Scotty, beam me up!</h1>"]
+  get "/shorten/:word" $ do
     uri <- param "uri"
     let parsedUri :: Maybe URI
         parsedUri = parseURI (TextLazy.unpack uri)
@@ -70,9 +74,7 @@ app redisConnection = do
         response <- liftIO (saveURI redisConnection shorty' uri')
         html (shortyCreated response shorty)
       Nothing -> text (shortyNotURL uri)
-  get "/" $ do
-    html $ mconcat ["<h1>Scotty, beam me up!</h1>"]
-  get "/short/:short" $ do
+  get "/lengthen/:short" $ do
     short <- param "short"
     uri <- liftIO (getURI redisConnection short)
     case uri of
