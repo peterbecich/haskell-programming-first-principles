@@ -13,8 +13,9 @@ import Network.URI (URI, parseURI)
 import qualified System.Random as SystemRandom
 import Web.Scotty
 import Data.Monoid (mconcat)
-
-
+-- import Data.List.NonEmpty
+import Control.Monad
+import Control.Applicative
 
 alphaNum :: String
 alphaNum = ['A'..'Z'] ++ ['0'..'9']
@@ -25,8 +26,44 @@ randomElement xs = do
   randomDigit <- SystemRandom.randomRIO (0, maxIndex) :: IO Int
   return (xs !! randomDigit) -- !! is unsafe
 
-sevenRandomChars :: IO [Char]
-sevenRandomChars = replicateM 7 (randomElement alphaNum)
+sevenRandomChars :: IO ByteChar.ByteString
+sevenRandomChars = fmap ByteChar.pack $ replicateM 7 (randomElement alphaNum)
+
+-- type NonEmptyList a = (a, [a])
+sevenList :: IO [ByteChar.ByteString]
+sevenList = liftM2 (\x xs -> x:xs) sevenRandomChars sevenList
+
+-- sevenRandomChars' :: IO (NonEmptyList String)
+-- sevenRandomChars' = 
+
+
+
+-- want short URLs that don't exist in Redis yet
+foldEither :: Either Redis.Reply Bool -> Bool
+foldEither (Left _) = True
+foldEither (Right True) = False
+foldEither (Right False) = True
+
+redisPredicate redisConnection short =
+  fmap foldEither $ Redis.runRedis redisConnection (Redis.exists short)
+
+-- filterM' :: Applicative m => (a -> m Bool) -> m a -> 
+-- rconn :: Redis.Connection
+-- rconn = error "todo"
+-- filterM (\short -> (redisPredicate rconn short))
+--   :: [ByteChar.ByteString] -> IO [ByteChar.ByteString]
+
+
+generateShort :: Redis.Connection -> IO ByteChar.ByteString
+generateShort redisConnection =
+  fmap head $ sevenList >>= filterM (\short -> (redisPredicate redisConnection short))
+
+-- Redis.runRedis :: Redis.Connection -> Redis.Redis a -> IO a
+-- Redis.set
+--   :: Redis.RedisCtx m f =>
+--      ByteChar.ByteString -> ByteChar.ByteString -> m (f Redis.Status)
+
+-- https://hackage.haskell.org/package/hedis-0.6.5/docs/Database-Redis.html#v:set
 
 saveURI :: Redis.Connection
         -> ByteChar.ByteString
@@ -68,11 +105,10 @@ app redisConnection = do
         parsedUri = parseURI (TextLazy.unpack uri)
     case parsedUri of
       Just _ -> do
-        shorty <- liftIO sevenRandomChars
-        let shorty' = ByteChar.pack shorty
-            uri' = encodeUtf8 (TextLazy.toStrict uri)
-        response <- liftIO (saveURI redisConnection shorty' uri')
-        html (shortyCreated response shorty)
+        shorty <- liftIO (generateShort redisConnection)
+        let uri' = encodeUtf8 (TextLazy.toStrict uri)
+        response <- liftIO (saveURI redisConnection shorty uri')
+        html (shortyCreated response (ByteChar.unpack shorty))
       Nothing -> text (shortyNotURL uri)
   get "/lengthen/:short" $ do
     short <- param "short"
