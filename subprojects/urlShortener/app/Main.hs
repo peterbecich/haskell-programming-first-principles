@@ -46,8 +46,8 @@ shortyCreated :: Show a => a -> String -> TextLazy.Text
 shortyCreated response shorty =
   TextLazy.concat [ TextLazy.pack (show response), " shorty is: ", TextLazy.pack (linkShorty shorty) ]
 
-shortyNotFound :: TextLazy.Text -> TextLazy.Text
-shortyNotFound uri = TextLazy.concat [ uri, " wasn't a URL"]
+shortyNotURL :: TextLazy.Text -> TextLazy.Text
+shortyNotURL uri = TextLazy.concat [ uri, " wasn't a URL"]
 
 shortyFound :: TextLazy.Text -> TextLazy.Text
 shortyFound tbs = TextLazy.concat ["<a href=\"", tbs, "\">", tbs, "</a>"]
@@ -56,15 +56,44 @@ shortyFound tbs = TextLazy.concat ["<a href=\"", tbs, "\">", tbs, "</a>"]
 --   uri <- param "uri"
   
     
--- app :: Redis.Connection -> ScottyM ()
--- app redisConnection = do
---   get "/:word" $ do
---     beam <- param "word"
---     html $ mconcat ["<h1>Scotty, ", beam, " me up!</h1>"]
+app :: Redis.Connection -> ScottyM ()
+app redisConnection = do
+  get "/:word" $ do
+    uri <- param "uri"
+    let parsedUri :: Maybe URI
+        parsedUri = parseURI (TextLazy.unpack uri)
+    case parsedUri of
+      Just _ -> do
+        shorty <- liftIO sevenRandomChars
+        let shorty' = ByteChar.pack shorty
+            uri' = encodeUtf8 (TextLazy.toStrict uri)
+        response <- liftIO (saveURI redisConnection shorty' uri')
+        html (shortyCreated response shorty)
+      Nothing -> text (shortyNotURL uri)
+  get "/" $ do
+    html $ mconcat ["<h1>Scotty, beam me up!</h1>"]
+  get "/short/:short" $ do
+    short <- param "short"
+    uri <- liftIO (getURI redisConnection short)
+    case uri of
+      (Left reply) -> text (TextLazy.pack (show reply))
+      (Right maybeLongURI) -> case maybeLongURI of
+        Nothing -> text "URI not found"
+        (Just longURI) -> html (shortyFound tbs)
+          where tbs :: TextLazy.Text
+                tbs = TextLazy.fromStrict (decodeUtf8 longURI)
+
+-- redisConnectionInfo
+
+main = do
+  redisConnection <- Redis.connect Redis.defaultConnectInfo
+  scotty 3000 (app redisConnection)
+
+
   
 -- main :: ScottyM ()
 -- https://hackage.haskell.org/package/scotty
-main = scotty 3000 $ do
-  get "/:word" $ do
-    beam <- param "word"
-    html $ mconcat ["<h1>Scotty, ", beam, " me up!</h1>"]
+-- main = scotty 3000 $ do
+--   get "/:word" $ do
+--     beam <- param "word"
+--     html $ mconcat ["<h1>Scotty, ", beam, " me up!</h1>"]
