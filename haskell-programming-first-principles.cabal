@@ -36,6 +36,7 @@ library
                      , Chapter26
                      , Morra
                      , LensExamples
+                     , OuterInner
   build-depends:       base >= 4.7 && < 5
                      , QuickCheck
                      , transformers
@@ -45,6 +46,8 @@ library
                      , mtl
                      , containers
                      , lens
+                     , scotty
+                     , either
                      , course
   default-language:    Haskell2010
 

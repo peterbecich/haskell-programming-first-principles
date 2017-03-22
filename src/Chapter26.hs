@@ -8,6 +8,8 @@ import Control.Applicative
 import Data.Either
 import Data.Bifunctor
 
+-- import Control.Monad.Trans.Either
+
 -- newtype Compose' f g a = 
 
 newtype MaybeT m a = MaybeT { runMaybeT :: m (Maybe a) }
@@ -114,4 +116,11 @@ instance Monad m => Monad (ReaderT r m) where
       in ma >>= amb
     in ReaderT rmb
                                
+class MonadTrans t where
+  lift :: (Monad m) => m a -> t m a
 
+instance MonadTrans (ReaderT r ) where
+  lift = ReaderT . const
+
+-- instance MonadTrans (EitherT e ) where
+--   lift = pure

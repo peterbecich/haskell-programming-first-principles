@@ -23,6 +23,7 @@ import Chapter26
 import Morra
 import LensExamples
 import NaiveLensExamples
+import OuterInner
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
