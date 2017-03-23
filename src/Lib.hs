@@ -24,6 +24,7 @@ import Morra
 import LensExamples
 import NaiveLensExamples
 import OuterInner
+import SimpleTransformer
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
