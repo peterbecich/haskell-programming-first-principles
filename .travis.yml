@@ -4,9 +4,9 @@ language: haskell
 cache:
   directories:
     - $HOME/.stack
+    - $HOME/subprojects/fingerd/.stack
     - $HOME/subprojects/urlShortener/.stack
     - $HOME/subprojects/additionHspec/.stack
-    - $HOME/subprojects/fingerd/.stack
     
 notifications:
   email:
