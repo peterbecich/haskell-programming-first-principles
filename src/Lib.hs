@@ -18,12 +18,15 @@ import Chapter20
 import Chapter21
 import Chapter22
 import Chapter23
+import LearnParsers
+import Chapter24
 import Chapter25
 import Chapter26
 import Morra
 import LensExamples
 import NaiveLensExamples
 import OuterInner
+import ScottyTransformer
 import SimpleTransformer
 
 someFunc :: IO ()
