@@ -102,7 +102,7 @@ oneTwoS = liftA2 (++) oneS twoS
 
 countOfThree :: Parser String
 countOfThree =
-  choice [oneTwoThreeS, oneTwoS, oneS] <* eof
+  choice [(try oneTwoThreeS), (try oneTwoS), (try oneS)] <* eof
 
 countThree = do
   putStrLn "--------------"  
@@ -123,13 +123,24 @@ countThree = do
   parse (oneTwoS <* eof) "123"
 
 
-secondChoiceP = choice [oneTwoThreeS, oneTwoS]
+-- secondChoiceP = choice [(oneTwoThreeS), (oneTwoS)]
+
+secondChoiceP = choice [(try oneTwoThreeS), (try oneTwoS)]
 secondChoice = do
   parse secondChoiceP "123"
   putStrLn "--------------"  
   parse secondChoiceP "12"
   putStrLn "--------------"  
   parse secondChoiceP "1"
+
+secondChoiceP' = oneTwoThreeS <|> oneTwoS
+secondChoice''' = do
+  parse secondChoiceP' "123"
+  putStrLn "--------------"  
+  parse secondChoiceP' "12"
+  putStrLn "--------------"  
+  parse secondChoiceP' "1"
+  
 
 -- Success "123"
 -- --------------
@@ -142,4 +153,10 @@ secondChoice = do
 --     EOF, expected: "2"
 -- 1<EOF> 
 --  ^     , _errDeltas = [Columns 1 1]})
-  
+
+-- MarcelineVQ
+
+secondChoice' = parse (choice [some (char '2'), some (char 'z'), oneTwoS]) "12"
+
+secondChoice'' = parse (choice [some (char '1') >> some (char 'z'), oneTwoS]) "12"
+
