@@ -130,3 +130,16 @@ secondChoice = do
   parse secondChoiceP "12"
   putStrLn "--------------"  
   parse secondChoiceP "1"
+
+-- Success "123"
+-- --------------
+-- Failure (ErrInfo {_errDoc = (interactive):1:3: error: unexpected
+--     EOF, expected: "3"
+-- 12<EOF> 
+--   ^     , _errDeltas = [Columns 2 2]})
+-- --------------
+-- Failure (ErrInfo {_errDoc = (interactive):1:2: error: unexpected
+--     EOF, expected: "2"
+-- 1<EOF> 
+--  ^     , _errDeltas = [Columns 1 1]})
+  
