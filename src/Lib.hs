@@ -25,6 +25,7 @@ import LensExamples
 import NaiveLensExamples
 import OuterInner
 import SimpleTransformer
+import CountEntries
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"

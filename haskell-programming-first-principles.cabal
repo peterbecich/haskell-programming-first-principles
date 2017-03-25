@@ -38,6 +38,7 @@ library
                      , LensExamples
                      , OuterInner
                      , SimpleTransformer
+                     , CountEntries
   build-depends:       base >= 4.7 && < 5
                      , QuickCheck
                      , transformers
@@ -49,6 +50,8 @@ library
                      , lens
                      , scotty
                      , either
+                     , directory
+                     , filepath
                      , course
   default-language:    Haskell2010
 
