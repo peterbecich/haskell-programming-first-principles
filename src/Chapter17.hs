@@ -36,3 +36,44 @@ z = ((All True), (+1)) <*> ((All False), 0)
 
 
 
+
+-- instance EqProp Bull where
+--   (=-=) Fools Fools = True
+--   (=-=) Twoo Twoo = True
+--   (=-=) _ _ = False
+
+-- see ZipListMonoid.hs
+
+data List a = Nil | Cons a (List a) deriving (Eq, Show)
+
+instance Functor List where
+  fmap _ Nil = Nil
+  fmap func (Cons x xs) = Cons (func x) (fmap func xs)
+
+instance Applicative List where
+  pure x = Cons x Nil
+  (<*>) Nil _ = Nil
+  (<*>) _ Nil = Nil
+  (<*>) (Cons f fs) (Cons x xs) = Cons (f x) (fs <*> xs)
+
+append :: List a -> List a -> List a
+append Nil ys = ys
+append (Cons x xs) ys = Cons x $ xs `append` ys
+
+fold :: (a -> b -> b) -> b -> List a -> b
+fold _ b Nil = b
+fold f b (Cons h t) = f h (fold f b t)
+
+concat' :: List (List a) -> List a
+concat' = fold append Nil
+
+flatMap :: (a -> List b) -> List a -> List b
+flatMap _ Nil = Nil
+flatMap func lx = concat' $ fmap func lx
+
+toMyList = foldr Cons Nil
+xs = toMyList [1, 2, 3]
+
+c = Cons
+
+foo' = flatMap (\x -> x `c` (9 `c` Nil)) xs

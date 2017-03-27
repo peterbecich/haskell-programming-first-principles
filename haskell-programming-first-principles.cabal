@@ -57,6 +57,7 @@ library
                      , bytestring
                      , trifecta
                      , parsers
+                     , checkers
   default-language:    Haskell2010
 
 executable haskell-programming-first-principles-exe

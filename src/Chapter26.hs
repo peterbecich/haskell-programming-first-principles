@@ -7,8 +7,11 @@ import Control.Applicative
 -- import Control.Monad.Trans.Class
 import Data.Either
 import qualified Data.Bifunctor as Bfunctor
-
 import Course.StateT
+
+import Test.QuickCheck
+import Test.QuickCheck.Checkers
+import Test.QuickCheck.Classes
 
 import Chapter25
 
