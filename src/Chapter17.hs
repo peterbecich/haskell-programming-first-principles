@@ -61,6 +61,12 @@ instance Applicative List where
   (<*>) _ Nil = Nil
   (<*>) (Cons f fs) (Cons x xs) = Cons (f x) (fs <*> xs)
 
+trigger = undefined :: (String, String, String)  
+
+testList = quickBatch $ applicative [trigger]
+
+-- testList' = quickBatch $ applicative (Cons trigger Nil)
+
 append :: List a -> List a -> List a
 append Nil ys = ys
 append (Cons x xs) ys = Cons x $ xs `append` ys
@@ -140,6 +146,7 @@ z'' = ZipList' $ toMyList [1..3]
 
 z''' = z' <*> z''
 
+-- trigger = undefined :: (String, String, String)
 
--- quickBatch $ applicative 
+-- testZipList = quickBatch $ applicative (ZipList' (Cons trigger Nil))
 
