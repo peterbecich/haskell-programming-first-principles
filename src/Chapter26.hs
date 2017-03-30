@@ -198,16 +198,20 @@ instance Monad m => Monad (ReaderT r m) where
   return = pure
   --                        (a -> ReaderT { runReaderT :: r -> m b })
   -- (>>=) :: ReaderT r m a -> (a -> ReaderT r m b) -> ReaderT r m b
-  (>>=) rta aRTB = let
-    rma = runReaderT rta -- :: r -> m a
-    armb = runReaderT . aRTB -- :: a -> r -> m b
-    ramb = flip armb -- :: r -> a -> m b
-    -- r -> m b
-    rmb r = let
-      ma = rma r -- :: m a
-      amb = ramb r -- :: a -> m b
-      in ma >>= amb
-    in ReaderT rmb
+  (>>=) rta aRTB = ReaderT $ \r -> do
+    a <- runReaderT rta r
+    runReaderT (aRTB a) r
+
+    -- let
+    -- rma = runReaderT rta -- :: r -> m a
+    -- armb = runReaderT . aRTB -- :: a -> r -> m b
+    -- ramb = flip armb -- :: r -> a -> m b
+    -- -- r -> m b
+    -- rmb r = let
+    --   ma = rma r -- :: m a
+    --   amb = ramb r -- :: a -> m b
+    --   in ma >>= amb
+    -- in ReaderT rmb
 
 -- given any Monad m, lift it into Monad Transformer t       
 class MonadTrans t where
@@ -244,3 +248,40 @@ instance (MonadIO m) => MonadIO (ReaderT r m) where
 
 instance (MonadIO m) => MonadIO (StateT s m) where
   liftIO iox = StateT $ \s0 -> fmap (\x -> (x, s0)) (liftIO iox)
+
+newtype Id a = Id a
+
+instance Functor Id where
+  fmap f (Id x) = Id $ f x
+
+instance Applicative Id where
+  pure x = Id x
+  (<*>) (Id f) (Id x) = Id $ f x
+
+instance Monad Id where
+  return x = Id x
+  (>>=) (Id x) f = f x
+
+type Reader r a = ReaderT r Id a
+
+runReader :: Reader r a -> r -> a
+runReader rta r = let
+  idA = (runReaderT rta r)
+  in case idA of
+    (Id a) -> a
+    
+-- 1
+rDec :: Num a => Reader a a
+rDec = ReaderT $ \r -> Id (r - 1)
+
+zero = runReader rDec 1
+
+-- 3
+rShow :: Show a => ReaderT a Id String
+rShow = ReaderT $ \r -> (Id (show r))
+
+three = runReader rShow 3
+
+-- 5
+-- rPrintAndInc :; (Num a, Show a) => ReaderT a IO a
+-- rPrintAndInc = 
