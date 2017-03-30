@@ -27,6 +27,8 @@ import LensExamples
 import NaiveLensExamples
 import OuterInner
 import ScottyTransformer
+import ScottyTransformer2
+import ScottyTransformer3
 import SimpleTransformer
 import CountEntries
 
