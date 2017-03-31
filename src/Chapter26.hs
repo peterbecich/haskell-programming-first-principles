@@ -4,6 +4,7 @@ import Data.Functor
 -- https://hackage.haskell.org/package/transformers-0.4.3.0/docs/Data-Functor-Compose.html
 -- import Data.Functor.Compose
 import Control.Applicative
+import Control.Monad
 -- import Control.Monad.Trans.Class
 import Data.Either
 import qualified Data.Bifunctor as Bfunctor
@@ -273,6 +274,8 @@ runReader rta r = let
 -- 1
 rDec :: Num a => Reader a a
 rDec = ReaderT $ \r -> Id (r - 1)
+rInc :: Num a => Reader a a
+rInc = ReaderT $ \r -> Id (r + 1)
 
 zero = runReader rDec 1
 
@@ -283,5 +286,19 @@ rShow = ReaderT $ \r -> (Id (show r))
 three = runReader rShow 3
 
 -- 5
--- rPrintAndInc :; (Num a, Show a) => ReaderT a IO a
--- rPrintAndInc = 
+-- don't implement this with rDec and rShow
+rPrintAndInc :: (Num a, Show a) => ReaderT a IO a
+rPrintAndInc = ReaderT $ \r -> do
+  putStrLn ("hello "++(show r))
+  return (r + 1)
+
+hellos = traverse (runReaderT rPrintAndInc) [1..10]
+
+-- 6
+sPrintIncAccum :: (Num a, Show a) => StateT a IO String
+sPrintIncAccum = StateT $ \s0 -> do
+  putStrLn $ "Hello: "++(show s0)
+  return (show s0, s0 + 1)
+
+tuples = mapM (runStateT sPrintIncAccum) [1..5]
+
