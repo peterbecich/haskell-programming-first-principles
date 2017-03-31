@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module HitCounter where
 
 import Control.Monad.Trans.Class
@@ -24,4 +26,26 @@ increment k m = let
                             Nothing -> Just 1
                         ) k m
   in (m', fromMaybe 0 (M.lookup k m'))
---increment k m = M.update (\i -> Just (i + 1)) k m
+
+app :: Scotty ()
+app =
+  get "/:key" $ do
+  unprefixed <- param "key"
+  let key' = mappend prefix unprefixed
+  counts 
+  newInteger <- increment key' counts
+  html $ mconcat [ "<h1>Success! Count was: "
+                 , TL.pack $ show newInteger
+                 , "</h1>"
+                 ]
+
+-- https://hackage.haskell.org/package/scotty-0.11.0/docs/Web-Scotty-Trans.html
+
+main :: IO ()
+main = do
+  [prefixArg] <- getArgs
+  ioRef <- newIORef M.empty
+  let config = Config { counts = ioRef, prefix = "foo" }
+      runR = undefined
+  scottyT 3000 runR app
+
