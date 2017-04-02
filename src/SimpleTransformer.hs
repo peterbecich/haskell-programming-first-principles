@@ -3,6 +3,12 @@ module SimpleTransformer where
 import Control.Monad
 import Control.Monad.Trans
 import Control.Monad.Trans.Maybe
+import Control.Monad.Trans.Reader
+-- import Control.Monad.Trans.State.Lazy
+-- import Control.Monad.Reader
+import Control.Monad.State
+import Control.Concurrent.Thread.Delay
+import Data.Time.Clock
 import Data.UUID
 import Data.UUID.V4
 
@@ -134,3 +140,29 @@ authenticate' = runMaybeT authenticate
 --       else return ()
 
 -- authenticate2' = runMaybeT authenticate2
+
+
+------------------------------------------------
+data Config = Config { add :: Integer }
+
+data Adder = StateT Integer (Reader Config Integer) Integer
+
+rdr :: Reader Config Integer
+rdr = reader add
+  
+adder :: Adder
+adder = do
+  -- ad <- lift $ rdr
+  modify (\i -> i + 1)
+
+-- data Config = Config { startTime :: UTCTime }
+
+-- type Adder = StateT Integer (Reader Config)
+-- type Adder = ReaderT (State Integer Integer) 
+
+-- addSecond :: Adder ()
+-- addSecond = do
+--   startTime <- ask
+--   let diff = diffUTCTime 
+--   _ <- modify 
+
