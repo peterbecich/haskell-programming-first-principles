@@ -31,6 +31,8 @@ import ScottyTransformer
 import ScottyTransformer2
 import ScottyTransformer3
 import SimpleTransformer
+import MonadTransformerCommonPatterns
+import CountEntriesRevised
 import CountEntries
 
 someFunc :: IO ()

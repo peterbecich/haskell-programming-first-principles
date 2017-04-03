@@ -17,6 +17,9 @@ notHidden (x:xs)
   | otherwise = False
 notHidden [] = False
 
+
+-- http://book.realworldhaskell.org/read/monad-transformers.html
+
 countEntries :: FilePath -> IO [(FilePath, Int)]
 countEntries path = do
   contents <- listDirectory path
@@ -31,6 +34,8 @@ countEntries path = do
 
 pth = "/home/peterbecich/haskell/haskell-programming-first-principles/src"
 pth2 = "/home/peterbecich/haskell/haskell-programming-first-principles"
+pth3 = "/Users/peterbecich/haskell/haskell-programming-first-principles"
+pth4 = "/Users/peterbecich/haskell/haskell-programming-first-principles/src"
 
 countEntries2 :: FilePath -> WriterT [(FilePath, Int)] IO ()
 countEntries2 path = do
@@ -42,4 +47,7 @@ countEntries2 path = do
                        when isDir $ countEntries2 newName
                    )
 
+countEntries2' :: FilePath -> IO ( (), [(FilePath, Int)])
 countEntries2' path = runWriterT $ countEntries2 path
+
+
