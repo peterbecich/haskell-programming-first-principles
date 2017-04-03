@@ -148,23 +148,57 @@ authenticate' = runMaybeT authenticate
 
 
 ------------------------------------------------
-data Config = Config { add :: Integer }
 
-data Adder a = StateT Integer (Reader Config Integer) a
+-- IO is overkill here
+simpleCounter :: StateT Integer IO ()
+simpleCounter = modify (\i -> i + 2)
 
-rdr :: Reader Config Integer
-rdr = reader add
+count20 = replicateM 10 simpleCounter
+
+-- execStateT count20 0
+-- 20
+
+data Config = Config { add :: Integer } deriving (Show)
+
+type Adder = ReaderT Config (StateT Integer IO)
+
+config = Config 2
+
+startState :: Integer
+startState = 0
+
+adder :: Adder ()
+adder = do
+  config <- ask
+  let
+    toAdd = add config
+  -- lift $ do
+  --   s <- get
+  --   let s' = s + toAdd
+  --   put s'
+  s <- lift get
+  let
+    s' = s + toAdd
+  lift $ put s'
+
+runAdderStateT :: Config -> StateT Integer IO ()
+runAdderStateT config = runReaderT adder config
+
+runAdder :: IO ((), Integer)
+runAdder = runStateT (runAdderStateT config) startState
+
+execAdder :: IO Integer
+execAdder = execStateT (runAdderStateT config) startState
+
+-- replicateM 10 execAdder 
+-- [2,2,2,2,2,2,2,2,2,2]
   
--- adder = do
---   count <- get 
---   let ad = lift rdr
---       count' = count + ad
---   put count'
+addTenTimes :: Adder ()
+addTenTimes = replicateM_ 10 adder
 
--- data Config = Config { startTime :: UTCTime }
+execAdder' :: IO Integer
+execAdder' = execStateT (runReaderT adder config) startState
 
--- type Adder = StateT Integer (Reader Config)
--- type Adder = ReaderT (State Integer Integer) 
 
 -- addSecond :: Adder ()
 -- addSecond = do
@@ -172,11 +206,9 @@ rdr = reader add
 --   let diff = diffUTCTime 
 --   _ <- modify 
 
-
-
 -- https://www.youtube.com/watch?v=pzouxmWiemg
 
---https://youtu.be/pzouxmWiemg?t=1363
+-- https://youtu.be/pzouxmWiemg?t=1363
 
 -- newtype App e c a = App (EitherT e (ReaderT c IO) a)
 
