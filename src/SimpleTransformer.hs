@@ -196,15 +196,48 @@ execAdder = execStateT (runAdderStateT config) startState
 addTenTimes :: Adder ()
 addTenTimes = replicateM_ 10 adder
 
+-- should return 20
 execAdder' :: IO Integer
-execAdder' = execStateT (runReaderT adder config) startState
+execAdder' = execStateT (runReaderT addTenTimes config) startState
+
+---------------------------------
+
+data TimeConfig = TimeConfig {
+  startTime :: UTCTime
+  , interval :: Integer
+  } deriving (Show)
+
+data PolledTimes = PolledTimes { diff :: NominalDiffTime, pollings :: [UTCTime] } deriving (Show)
+
+type Poll = ReaderT TimeConfig (StateT PolledTimes IO)
+
+poll :: Poll ()
+poll = do
+  timeConfig <- ask
+  lift $ do
+    polledTimes <- get
+    now <- lift getCurrentTime
+    let
+      df :: NominalDiffTime
+      df = diffUTCTime now (startTime timeConfig)
+      pllngs' = now : (pollings polledTimes)
+      polledTimes' = PolledTimes df pllngs'
+    _ <- lift $ delay $ interval timeConfig
+    put polledTimes'
+
+pollTenTimes :: Poll ()
+pollTenTimes = replicateM_ 10 poll
+
+execPoll :: Poll () -> IO PolledTimes
+execPoll pl = do
+  now <- getCurrentTime
+  let config = TimeConfig now 1000000
+      startDiff = diffUTCTime now now
+      polledTimes = PolledTimes startDiff []
+  execStateT (runReaderT pl config) polledTimes
 
 
--- addSecond :: Adder ()
--- addSecond = do
---   startTime <- ask
---   let diff = diffUTCTime 
---   _ <- modify 
+-------------------------
 
 -- https://www.youtube.com/watch?v=pzouxmWiemg
 
