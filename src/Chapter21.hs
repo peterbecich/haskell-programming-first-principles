@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Chapter21 where
 
 import Data.Functor
@@ -79,6 +81,24 @@ xfoo' = map foo xfoo'
 xfoo'' :: Maybe [a]
 xfoo'' = sequenceA xfoo'
 
+
+f = undefined :: a -> Maybe b
+xs = undefined :: [a]
+
+-- :t map f xs 
+-- map f xs :: [Maybe b]
+
+-- :t sequenceA $ map f xs
+-- sequenceA $ map f xs :: Maybe [a]
+
+-- :t traverse f xs
+-- traverse f xs :: Maybe [b]
+
+-- :t (sequence .) . fmap 
+-- (sequence .) . fmap
+--   :: (Traversable t, Monad m) => (a1 -> m a) -> t a1 -> m (t a)
+
+
 data Query = Query
 data SomeObj = SomeObj
 data IoOnlyObj = IoOnlyObj
@@ -111,6 +131,7 @@ pipelineFn query = do
 -- No instance for (Traversable' (Either Err))
 -- and then use traverse'
 
+-- successive improvements
 pipelineFn' :: Query -> IO (Either' Err [(SomeObj, IoOnlyObj)])
 pipelineFn' query = do
   a <- fetchFn query
@@ -208,7 +229,36 @@ instance Traversable' Tree where
   traverse' func (Node left x right) =
     liftA3 (\l x r -> Node l x r) (traverse' func left) (func x) (traverse' func right)
 
+-- 21.12
+
+newtype Identity a = Identity a deriving (Eq, Ord, Show)
+
+instance Functor Identity where
+  fmap f (Identity x) = Identity (f x)
+
+instance Foldable Identity where
+  foldMap f (Identity x) = f x
+
+instance Traversable' Identity where
+  traverse' f (Identity x) = fmap Identity (f x)
 
 
+newtype Constant a b = Constant { getConstant :: a }
+
+-- see page 661
+-- FlipFunctor
+
+newtype Flip f a b = Flip (f b a) deriving (Eq, Show)
+
+instance Functor (Flip Constant b) where
+  fmap f (Flip constantA) = Flip $ Constant $ f (getConstant constantA)
+
+-- "However, Flip Tuple a b is a distinct type from Tuple a b even if it’s only there to provide for different Functor instance behavior."
+
+instance Foldable (Flip Constant b) where
+  foldMap f (Flip constantA) = f (getConstant constantA)
+
+instance Traversable' (Flip Constant b) where
+  traverse' f (Flip constantA) = fmap (Flip . Constant) (f (getConstant constantA))
 
 

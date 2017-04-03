@@ -203,4 +203,20 @@ x = [1, 2, 3]
 y = [4, 5, 6]
 z = [7, 8, 9]
 
+-- https://www.youtube.com/watch?v=pzouxmWiemg
 
+-- queryAll :: Connection -> IO [Thing]
+-- queryAll conn = do
+--   a <- queryForA conn
+--   b <- queryForB conn
+--   c <- queryForC conn
+--   pure (a <> b <> c)
+
+-- queryAll :: ReaderT Connection IO [Thing]
+-- queryAll = do
+--   a <- queryForA  -- must be ReaderT
+--   b <- queryForB
+--   c <- queryForC
+--   pure (a <> b <> c)
+
+ 

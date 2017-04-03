@@ -1,9 +1,14 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module SimpleTransformer where
 
 import Control.Monad
+import Control.Monad.Except
+import Control.Monad.Reader (MonadReader)
 import Control.Monad.Trans
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Reader
+import Control.Monad.Trans.Except
 -- import Control.Monad.Trans.State.Lazy
 -- import Control.Monad.Reader
 import Control.Monad.State
@@ -145,15 +150,16 @@ authenticate' = runMaybeT authenticate
 ------------------------------------------------
 data Config = Config { add :: Integer }
 
-data Adder = StateT Integer (Reader Config Integer) Integer
+data Adder a = StateT Integer (Reader Config Integer) a
 
 rdr :: Reader Config Integer
 rdr = reader add
   
-adder :: Adder
-adder = do
-  -- ad <- lift $ rdr
-  modify (\i -> i + 1)
+-- adder = do
+--   count <- get 
+--   let ad = lift rdr
+--       count' = count + ad
+--   put count'
 
 -- data Config = Config { startTime :: UTCTime }
 
@@ -165,4 +171,32 @@ adder = do
 --   startTime <- ask
 --   let diff = diffUTCTime 
 --   _ <- modify 
+
+
+
+-- https://www.youtube.com/watch?v=pzouxmWiemg
+
+--https://youtu.be/pzouxmWiemg?t=1363
+
+-- newtype App e c a = App (EitherT e (ReaderT c IO) a)
+
+data SqlError = SqlError String
+
+data AppError = DbSqlException SqlError | MissingFoo
+
+data AppEnv = AppEnv { appPort :: Int }
+
+newtype App a = App (ExceptT AppError (ReaderT AppEnv IO) a)
+  deriving
+    ( Functor
+    , Applicative
+    , Monad
+    , MonadReader AppEnv
+    , MonadError AppError
+    , MonadIO
+    )
+
+-- runApp :: AppEnv -> App a -> IO (Either AppError a)
+-- runApp e = runExceptT . flip runReaderT e . 
+
 

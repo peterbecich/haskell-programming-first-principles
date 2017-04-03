@@ -302,3 +302,8 @@ sPrintIncAccum = StateT $ \s0 -> do
 
 tuples = mapM (runStateT sPrintIncAccum) [1..5]
 
+-- https://www.youtube.com/watch?v=pzouxmWiemg
+
+--https://youtu.be/pzouxmWiemg?t=1363
+
+newtype App e c a = App (EitherT e (ReaderT c IO) a)

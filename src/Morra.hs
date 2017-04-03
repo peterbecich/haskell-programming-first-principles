@@ -137,7 +137,6 @@ cachePlayerMove fingers = do
     maybeLastTwo = flipTuple lastTwoMaybe :: Maybe (Fingers, Fingers)
   mapM_ (cachePlayerMove' fingers) maybeLastTwo
 
-p
 -- This is a Morra computation (type Morra String = StateT Score IO String).
 -- Within this computation, we're able to perform IO actions as well as manipulating a state
 -- of type Score. The result of the computation has type `String`.

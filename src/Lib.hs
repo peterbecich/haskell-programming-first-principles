@@ -16,6 +16,7 @@ import Chapter18
 import Chapter19
 import Chapter20
 import Chapter21
+import HttpStuff
 import Chapter22
 import Chapter23
 import LearnParsers
