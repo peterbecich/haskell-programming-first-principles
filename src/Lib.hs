@@ -34,6 +34,7 @@ import SimpleTransformer
 import MonadTransformerCommonPatterns
 import CountEntriesRevised
 import CountEntries
+import Chapter29
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
