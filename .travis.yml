@@ -7,6 +7,7 @@ cache:
     - $HOME/subprojects/fingerd/.stack
     - $HOME/subprojects/urlShortener/.stack
     - $HOME/subprojects/additionHspec/.stack
+    - $HOME/subprojects/vigenereCipher/.stack
     
 notifications:
   email:
