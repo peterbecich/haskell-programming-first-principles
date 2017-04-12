@@ -8,6 +8,7 @@ cache:
     - $HOME/subprojects/urlShortener/.stack
     - $HOME/subprojects/additionHspec/.stack
     - $HOME/subprojects/vigenereCipher/.stack
+    - $HOME/subprojects/telnetChat/.stack
     
 notifications:
   email:
