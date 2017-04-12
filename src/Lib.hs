@@ -7,6 +7,7 @@ import Chapter3
 import Chapter4
 import Chapter5
 import Chapter6
+import Chapter9
 import Chapter11
 import Chapter12
 import Chapter15
@@ -34,6 +35,7 @@ import SimpleTransformer
 import MonadTransformerCommonPatterns
 import CountEntriesRevised
 import CountEntries
+import Chapter27
 import Chapter29
 
 someFunc :: IO ()
