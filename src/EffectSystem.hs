@@ -90,37 +90,49 @@ one = runST exampleSTRef
 -- https://en.wikipedia.org/wiki/Quicksort#Lomuto_partition_scheme
 
 quickSort :: [Int] -> [Int]
-quickSort xs = runST $ let
-  lo = 0
-  hi = (length xs) - 1
-  sxs = return xs
-  in quickSort' sxs lo hi
+quickSort xs = runST $ do
+  let lo = 0
+      hi = (length xs) - 4
+  sxs <- mapM newSTRef xs 
+  quickSort' sxs lo hi
 
-quickSort' :: (ST s [Int]) -> Int -> Int -> (ST s [Int])
+quickSort' :: [(STRef s Int)] -> Int -> Int -> (ST s [Int])
 quickSort' sxs low high = if (low < high)
   then do
   p <- partition sxs low high
   _ <- quickSort' sxs low (p-1)
   quickSort' sxs (p+1) high
-  else sxs
+  else sequence (fmap readSTRef sxs)
 
 
+-- swaptest :: [(STRef s Int)]
+-- swaptest = fmap newSTRef [1..10]
 
+swap :: [(STRef s Int)] -> Int -> Int -> ST s ()
+swap sxs i j = do
+  let sx = sxs !! i
+      sy = sxs !! j
+  x <- readSTRef sx
+  y <- readSTRef sy
+  _ <- writeSTRef sx y
+  writeSTRef sy x
+  
+  
 -- when :: Applicative f => Bool -> f () -> f ()
-partition :: (ST s [Int]) -> Int -> Int -> ST s Int
+partition :: [(STRef s Int)] -> Int -> Int -> ST s Int
 partition sxs low high = do
-  xs <- sxs
-  let pivot = xs !! high
-  refi <- newSTRef (low - 1)
+  let spivot = sxs !! high -- :: ST s Int
+  refi <- newSTRef low
+  pivot <- readSTRef spivot
   forM_ [low..(high-1)] $ \j -> do
     i <- readSTRef refi
-    let jth = xs !! j
-    when (jth <= pivot)
-      (modifySTRef refi (+1))
-    undefined
+    let refj = sxs !! j -- :: ST s Int
+    j <- readSTRef refj
+    when (j <= pivot)
+      (modifySTRef refi (+1) >> swap sxs i j)
   i <- readSTRef refi
+  _ <- swap sxs (i+1) high
   return (i+1)
-
 
 quicksorted = quickSort nums
 
